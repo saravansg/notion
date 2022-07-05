@@ -182,9 +182,11 @@ const parseSlide = function (slide) {
 const parseObjectText = function (typeObj) {
   let plainText = typeObj && typeObj.plain_text ? typeObj.plain_text : " ";
   try {
-    if (typeObj && typeObj.type?.toLowerCase() == "people") {
+    if (typeObj && typeObj.type?.toLowerCase() == "status") {
+      plainText = typeObj.status?.name || typeObj.name || " ";
+    } else if (typeObj && typeObj.type?.toLowerCase() == "people") {
       plainText = typeObj.name || " ";
-    } if (typeObj && typeObj.type?.toLowerCase() == "person") {
+    } else if (typeObj && typeObj.type?.toLowerCase() == "person") {
       plainText = typeObj.name || " ";
     } else if (typeObj && typeObj.type?.toLowerCase() == "email") {
       plainText = typeObj.email;
@@ -192,6 +194,10 @@ const parseObjectText = function (typeObj) {
       plainText = typeObj["external"].url;
     } else if (typeObj && typeObj.type?.toLowerCase() == "created_time") {
       plainText = typeObj.created_time;
+    } else if (typeObj && typeObj.type?.toLowerCase() == "date") {
+      plainText = typeObj.date?.start || typeObj.start || " ";
+    } else if (typeObj && typeObj.name) {
+      plainText = typeObj.name || " ";
     }
   } catch (error) {
     console.log(typeObj)
@@ -305,7 +311,6 @@ exports.getDatabase = async function () {
           arrSlides.push(slide)
           slide = {}
         } else if (subSlide.type == "callout") {
-          console.log(subSlide)
           if (Object.keys(slide).length > 0)
             arrSlides.push(slide)
           slide = { callout: subSlide }
@@ -343,7 +348,7 @@ exports.getDatabase = async function () {
       if (Object.keys(parsedData).length > 0)
         arrFinalSLides.push(parsedData)
     }
-    return { slides: arrFinalSLides, ss: arrSlides };
+    return { slides: arrFinalSLides, original: arrSlides, data: data };
 
   } catch (error) {
     return { error: error, data: data };
