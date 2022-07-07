@@ -1,15 +1,66 @@
 require("dotenv").config();
-const { Client } = require("@notionhq/client");
 
+var request = require('request');
+
+const { Client } = require("@notionhq/client");
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
+
 const nestBlocks = ["to_do", "paragraph", "bulleted_list_item", "numbered_list_item", "image"]
 const slideSplitter = ["heading_1", "divider", "toggle", "callout"]
+
+let token = "secret_lDLNauvIFirlhqqRMvKHv3o3W87JDKhHVap46wRZBoL"
+
+
+let getBlockChildrenFromNotion = function (id, token) {
+  return new Promise((resolve, reject) => {
+    var options = {
+      'method': 'GET',
+      'url': 'https://api.notion.com/v1/blocks/' + id + '/children',
+      'headers': {
+        'Notion-Version': '2022-02-22',
+        Authorization: 'Bearer ' + token,
+      }
+    };
+    // console.log("getBlockChildren options:", options)
+    request(options, function (error, response, body) {
+      if (error) {
+        reject(error)//throw new Error(error);
+        logger.error("getBlockChildren Error:", error)
+      }
+      // console.log("getBlockChildren body:", body);
+      resolve(JSON.parse(body))
+    });
+  })
+}
+
+let getDBContentFromNotion = function (id, token) {
+  return new Promise((resolve, reject) => {
+    var options = {
+      'method': 'GET',
+      'url': 'https://api.notion.com/v1/databases/' + id,
+      'headers': {
+        'Notion-Version': '2022-02-22',
+        Authorization: 'Bearer ' + token,
+      }
+    };
+    // console.log("getDBContent options:", options)
+    request(options, function (error, response, body) {
+      if (error) {
+        reject(error)//throw new Error(error);
+        logger.error("getDBContent Error:", error)
+      }
+      //console.log("getDBContent body:",body);
+      resolve(JSON.parse(body))
+    });
+  })
+}
 
 
 const getBlockChildren = async function (id, data) {
   const response = await notion.blocks.children.list({
     block_id: id
   })
+  // const response = await getBlockChildrenFromNotion(id, token)
   let arrBlocks = [];
   let arrSubBlocks = []
   for (let index = 0; index < response.results.length; index++) {
@@ -42,6 +93,7 @@ const getBlockChildren = async function (id, data) {
 
 
 const getDatabase = async function (id, db) {
+  // const response = await getDBContentFromNotion(id, token)
   const response = await notion.databases.query({
     database_id: id
   })
@@ -222,6 +274,18 @@ const parseText = function (textData) {
         }
       });
       return objData;
+    } else if (textData && textData.rich_text && textData.rich_text.length > 0) {
+      let objData = { type: "text", value: "" };
+      textData.rich_text.forEach(textObj => {
+        let type = textObj.type;
+        objData.value = objData.value + " " + textObj.plain_text
+        objData.annotations = textObj.annotations;
+        if (type != "text") {
+          objData.extraData = textObj[type]
+          objData.extraType = type
+        }
+      });
+      return objData;
     } else if (textData && textData.type == "external") {
       let plainText = parseObjectText(textData)
       return { type: "image", value: plainText, extraData: textData }
@@ -351,6 +415,7 @@ exports.getDatabase = async function () {
     return { slides: arrFinalSLides, original: arrSlides, data: data };
 
   } catch (error) {
+    console.log(error)
     return { error: error, data: data };
   }
 };
