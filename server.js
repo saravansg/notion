@@ -1,6 +1,7 @@
 const express = require("express");
 const moduleToFetch = require("./index");
 const getDatabase = moduleToFetch.getDatabase;
+const setAuthKey = moduleToFetch.setAuthKey;
 const newEntryToDatabase = moduleToFetch.newEntryToDatabase;
 
 const port = 8000;
@@ -15,9 +16,9 @@ app.use(
 );
 
 app.get("/users", async (req, res) => {
-  const users = await getDatabase();
+  setAuthKey("secret_lDLNauvIFirlhqqRMvKHv3o3W87JDKhHVap46wRZBoL");
+  const users = await getDatabase("54e8d49de9fb47f688287ff6814de79f");
   res.json(users);
-  console.log(users)
 });
 
 app.post("/submit-form", async (req, res) => {

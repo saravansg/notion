@@ -1,14 +1,10 @@
-require("dotenv").config();
-
-var request = require('request');
-
 const { Client } = require("@notionhq/client");
-const notion = new Client({ auth: process.env.NOTION_API_KEY });
+let notion;
 
 const nestBlocks = ["to_do", "paragraph", "bulleted_list_item", "numbered_list_item", "image"]
 const slideSplitter = ["heading_1", "divider", "toggle", "callout"]
 
-let token = "secret_lDLNauvIFirlhqqRMvKHv3o3W87JDKhHVap46wRZBoL"
+// let token = "secret_lDLNauvIFirlhqqRMvKHv3o3W87JDKhHVap46wRZBoL"
 
 const getBlockChildren = async function (id, data) {
   const response = await notion.blocks.children.list({
@@ -397,7 +393,7 @@ const parseObjectText = function (typeObj) {
       plainText = `${startDate}${endDate != " " ? " - " + endDate : ""}`;
     } else if (typeObj && typeObj.name) {
       plainText = typeObj.name || " ";
-    } else if (textObj.type == "text") {
+    } else if (typeObj.type?.toLowerCase() == "text") {
       plainText = textObj.plain_text || "";
     }
   } catch (error) {
@@ -688,11 +684,10 @@ const HeaderKey = {
 
 // Test-508f16a671b84633895c52307990d920
 // 94cf19fb911240f78e6aeb565f3178e1
-exports.getDatabase = async function () {
+exports.getDatabase = async function (pid) {
   const data = {}
   try {
-    const page = await notion.pages.retrieve({ page_id: "54e8d49de9fb47f688287ff6814de79f" });
-    await getBlockChildren("54e8d49de9fb47f688287ff6814de79f", data)
+    await getBlockChildren(pid, data)
     let mainSlides = [];
     let arrSlides = [];
     let slides = [];
@@ -791,12 +786,9 @@ exports.getDatabase = async function () {
   }
 };
 
-exports.getPageData = async function (id) {
-  const response = await notion.pages.retrieve({ page_id: id });
-  // console.log(response);
+exports.setAuthKey = function(key){
+  notion = new Client({ auth: key });
 }
-
-
 // paragraph && length == 1 && without 2 and 3  = 'subtitle';
 // paragraph && length == 1 && with 2 or 3  = 'slidelabel';
 // paragraph && length>1 = 'list';
