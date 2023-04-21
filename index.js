@@ -590,8 +590,10 @@ const splitSlides = function(arrSubblocks) {
     keys = Object.keys(slideElements);
 
     if (item.type == "divider") continue;
+    if (item[item.type].text?.length == 0) continue;
+    if (slideElements.title?.type == item.type) createNewSlide()
     if (keys.includes(HeaderKey[item.type])) createNewSlide()
-    else if (objGraphic.childrens.length > 0 && previousType != item.type) createNewSlide()
+    else if ((objGraphic.childrens.length > 0) && previousType != item.type) createNewSlide()
 
     if (item.type == "heading_1" && !keys.includes("title")) {
       let text = item[item.type].text?.[0]?.plain_text || ""
@@ -636,7 +638,11 @@ const splitSlides = function(arrSubblocks) {
   function createNewSlide() {
     if (objGraphic.childrens.length > 0) {
       slideElements.graphic = objGraphic;
-      if (paragraph.length > 0) slideElements.extraData = {type: "paragraph", childrens: paragraph}
+      if (paragraph.length < 3 && paragraph.length != 0 && !slideElements.title) {
+        if (paragraph[0]) slideElements.title = paragraph[0];
+        if (paragraph[1]) slideElements.subtitle = paragraph[1];
+      }else if (paragraph.length == 1 && !slideElements.subtitle) slideElements.subtitle = paragraph[0]
+      else if (paragraph.length > 0) slideElements.extraData = {type: "paragraph", childrens: paragraph}
     }else if (paragraph.length > 0) {
       if (paragraph.length == 1 && !slideElements.subtitle) slideElements.subtitle = paragraph[0];
       slideElements.graphic = {type: "list", childrens: paragraph}
