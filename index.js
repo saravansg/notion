@@ -196,33 +196,33 @@ const parseNewSlide = function (slide) {
   if (slide.graphic) {
     let graphics = slide.graphic.childrens;
     if (graphics?.length > 1) {
-        let subType = slide.graphic.type == "to_do" || slide.graphic.type == "bulleted_list_item" ? "bulleted" : slide.graphic.type == "image" ? "image" : "numbered"
-        subType = slide.graphic.type == "list" ? "none" : subType;
-        let data = { 
-          "outlinetype": slide.graphic.type == "image" ? "image" : "none", 
-          subtype: subType
-        }
-        data.matrix = [];
-        graphics.forEach(element => {
-          let textData = parseText(element[element.type])
-          let subMatrix = [textData]
-          if (textData.value.trim() != "") data.matrix.push({ matrix:  subMatrix})
-          if (element.subblocks) addSubList(subMatrix, element.subblocks)
-        });
-        if (slide.graphic.type == "to_do") {
-          data.properties = {graphicname: "ver-ckd-tx-sty-b"}
-        }
-        newSlide.elements = [{
-          data: data, 
-          "outlinetype": "diagram",
-          "type": "list",
-        }]
+      let subType = slide.graphic.type == "to_do" || slide.graphic.type == "bulleted_list_item" ? "bulleted" : slide.graphic.type == "image" ? "image" : "numbered"
+      subType = slide.graphic.type == "list" ? "none" : subType;
+      let data = {
+        "outlinetype": slide.graphic.type == "image" ? "image" : "none",
+        subtype: subType
+      }
+      data.matrix = [];
+      graphics.forEach(element => {
+        let textData = parseText(element[element.type])
+        let subMatrix = [textData]
+        if (textData.value.trim() != "") data.matrix.push({ matrix: subMatrix })
+        if (element.subblocks) addSubList(subMatrix, element.subblocks)
+      });
+      if (slide.graphic.type == "to_do") {
+        data.properties = { graphicname: "ver-ckd-tx-sty-b" }
+      }
+      newSlide.elements = [{
+        data: data,
+        "outlinetype": "diagram",
+        "type": "list",
+      }]
       //}
     } else if (slide.graphic.type == "paragraph" || slide.graphic.type == "callout") {
       let child = slide.graphic.childrens[0];
       if (!newSlide.title || newSlide.title == "") {
         newSlide.title = parseText(child[child.type])
-      }else if (!newSlide.subtitle || newSlide.subtitle.value == "")
+      } else if (!newSlide.subtitle || newSlide.subtitle.value == "")
         newSlide.subtitle = parseText(child[child.type])
       else {
         newSlide.takeawaydata = parseText(child[child.type])
@@ -242,8 +242,8 @@ const parseNewSlide = function (slide) {
               let cellproperties = {
                 "width": 170,
                 "height": 70
-            }
-              rowHeader.matrix.push({ titleHolder: { type: "text", value: arrProps[r], contenttype: "text" }, cellproperties:cellproperties })
+              }
+              rowHeader.matrix.push({ titleHolder: { type: "text", value: arrProps[r], contenttype: "text" }, cellproperties: cellproperties })
             }
             header = false
           }
@@ -254,13 +254,13 @@ const parseNewSlide = function (slide) {
             row.matrix.push(nodeData)
           }
           if (row.matrix.length > 0) {
-          data.matrix.push(row)
+            data.matrix.push(row)
           }
         });
       }
-      data.properties =  {graphicname: "tbl-sty-a-57"};
+      data.properties = { graphicname: "tbl-sty-a-57" };
       newSlide.elements = [{
-        data: data, 
+        data: data,
         "outlinetype": "multicontenttable",
         "subtype": "multicontenttable",
       }]
@@ -291,19 +291,19 @@ const parseNewSlide = function (slide) {
             let obj = {};
             arrCellData.forEach(cellData => {
               let objParsed = parseTableText(cellData)
-              obj = {...obj, ...objParsed};
+              obj = { ...obj, ...objParsed };
             })
             obj.cellproperties = {
               "width": 200,
               "height": 70
-          }
+            }
             row.matrix.push(obj)
           }
         });
       }
-      data.properties =  {graphicname: "tbl-sty-a-57"};
+      data.properties = { graphicname: "tbl-sty-a-57" };
       newSlide.elements = [{
-        data: data, 
+        data: data,
         "outlinetype": "multicontenttable",
         "subtype": "multicontenttable"
       }]
@@ -311,17 +311,17 @@ const parseNewSlide = function (slide) {
       arrColListItem = slide.graphic.childrens[0].subblocks;
 
       let arrRow = [];
-      for(let i=0;i<arrColListItem.length;i++) {
+      for (let i = 0; i < arrColListItem.length; i++) {
         let arrItem = arrColListItem[i].subblocks;
-        for(let j=0;j<arrItem.length;j++) {
+        for (let j = 0; j < arrItem.length; j++) {
           let nodeItem = arrItem[j];
-          let matrix = nodeDataForTable(nodeItem,"");
-          arrRow.push({matrix: matrix});
+          let matrix = nodeDataForTable(nodeItem, "");
+          arrRow.push({ matrix: matrix });
         }
       }
-      let data = {matrix:arrRow, subtype:"image", outlinetype:"image"}
+      let data = { matrix: arrRow, subtype: "image", outlinetype: "image" }
       newSlide.elements = [{
-        data: data, 
+        data: data,
         "outlinetype": "diagram",
         "type": "diagram",
       }]
@@ -332,7 +332,7 @@ const parseNewSlide = function (slide) {
         value: embd.url,
         autogenerate: true,
       }
-    }else if (slide.graphic.type == "video" || slide.graphic.type == "audio" || slide.graphic.type == "file") {
+    } else if (slide.graphic.type == "video" || slide.graphic.type == "audio" || slide.graphic.type == "file") {
       let embedObj = graphics[0]
       let embd = embedObj[embedObj.type];
       let url = embd[embd.type]?.url
@@ -349,7 +349,7 @@ const parseNewSlide = function (slide) {
       subdata.indent = indent;
       matrix.push(subdata);
       if (element.subblocks) {
-        addSubList(matrix, element.subblocks, indent+1)
+        addSubList(matrix, element.subblocks, indent + 1)
       }
     })
   }
@@ -359,13 +359,12 @@ const parseNewSlide = function (slide) {
     newSlide.title = parseText(child[child.type])
   }
 
-  if (slide.extraData && !newSlide.graphic) {
+  if (slide.extraData && !newSlide.elements) {
     parseList(slide.extraData.type, slide.extraData.childrens, newSlide);
-    // newSlide.graphic = slide.extraData
   } else if (slide.extraData) {
     let textData = slide.extraData.childrens.map(obj => {
       let objData = obj[obj.type]?.text?.map?.(text => text.plain_text).join("");
-      return {type: "text", value: objData}
+      return { type: "text", value: objData }
     })
     newSlide.extraData = textData
   }
@@ -477,7 +476,7 @@ const nodeDataForTable = (extraData, value) => {
     case "rich_text":
       return { titleHolder: { type: "text", contenttype: extraData.type, value: value, textproperties: extraData.annotations || {}, extraData: extraData } }
     case "mention":
-      return { subTitleHolder: { type: "list", items:[{type:"text", value: extraData.plain_text}]} }
+      return { subTitleHolder: { type: "list", items: [{ type: "text", value: extraData.plain_text }] } }
     case "select": {
       let selectText = extraData.select.name;
       return { titleHolder: { type: "text", contenttype: extraData.type, value: selectText, textproperties: extraData.annotations || {}, extraData: extraData } }
@@ -503,7 +502,7 @@ const nodeDataForTable = (extraData, value) => {
     case "people": {
       let peopleText = extraData["people"]?.map(data => data.name).join(",");
       let author = getAuthorDetails(extraData["people"]?.[0]);
-      return {authorStyle: author};
+      return { authorStyle: author };
       return { titleHolder: { type: "text", contenttype: extraData.type, value: peopleText, textproperties: extraData.annotations || {}, extraData: extraData } }
     }
     case "formula": {
@@ -519,14 +518,14 @@ const nodeDataForTable = (extraData, value) => {
     case "last_edited_time":
       {
         return { titleHolder: { type: "text", contenttype: extraData.type, value: extraData[extraData.type], textproperties: extraData.annotations || {}, extraData: extraData } }
-    }
+      }
     case "image": {
       let imageData = extraData.image;
-      let content = {type: "image", contenttype:"image", value: imageData[imageData.type]?.url}
+      let content = { type: "image", contenttype: "image", value: imageData[imageData.type]?.url }
       let data = [content];
       if (imageData.caption) {
         let captionText = imageData.caption.reduce((acc, textData) => acc = acc + " " + textData.plain_text, "");
-        data.push({type: "text", value: captionText});
+        data.push({ type: "text", value: captionText });
       }
       return data;
     }
@@ -549,44 +548,48 @@ const getListData = async function (data, obj) {
 }
 
 const getAuthorDetails = (people) => {
-  return  {
+  return {
+    "subNodes": {
+      "authorImageHolder": {
+        value: people.avatar_url,
+        contenttype: "image"
+      },
+      "authorGroup": {
         "subNodes": {
-            "authorImageHolder": {
-                value: people.avatar_url,
-                contenttype: "image"
-            },
-            "authorGroup": {
-                "subNodes": {
-                    "authorNameHolder": {
-                        "name": "authorNameHolder",
-                        "visible": true,
-                        value: people.name,
-                        type: "text"
+          "authorNameHolder": {
+            "name": "authorNameHolder",
+            "visible": true,
+            value: people.name,
+            type: "text"
 
-                    },
-                    "authorDesHolder": {
-                        "name": "authorDesHolder",
-                        "visible": true,
-                        value: people.person.email,
-                        type: "text"
-                    }
-                }
-            }
+          },
+          "authorDesHolder": {
+            "name": "authorDesHolder",
+            "visible": true,
+            value: people.person.email,
+            type: "text"
+          }
         }
-    
-}
+      }
+    }
+
+  }
 }
 
-const splitSlides = function(arrSubblocks) {
+const splitSlides = function (arrSubblocks) {
   let arrSlides = [];
-  let objGraphic = {type: "", childrens:[]};
+  let objGraphic = { type: "", childrens: [] };
   let slideElements = {};
   let previousType = "";
   let keys = [];
   let paragraph = [];
+  let subSlides = null;
 
-  for(let l=0;l<arrSubblocks.length;l++){
+  for (let l = 0; l < arrSubblocks.length; l++) {
     let item = arrSubblocks[l];
+    if (item.subblocks) {
+      // subSlides = splitSlides(item.subblocks);
+    }
     keys = Object.keys(slideElements);
 
     if (item.type == "divider") continue;
@@ -599,18 +602,18 @@ const splitSlides = function(arrSubblocks) {
       let text = item[item.type].text?.[0]?.plain_text || ""
       if (text == "") continue;
       slideElements.title = item;
-    }else if (item.type == "heading_2" && !keys.includes("subtitle")) {
+    } else if (item.type == "heading_2" && !keys.includes("subtitle")) {
       let text = item[item.type].text?.[0]?.plain_text || ""
       if (text == "") continue;
       if (!slideElements.title) slideElements.title = item
       else slideElements.subtitle = item;
-    }else if (item.type == "heading_3" && !keys.includes("label")) {
+    } else if (item.type == "heading_3" && !keys.includes("label")) {
       let text = item[item.type].text?.[0]?.plain_text || ""
       if (text == "") continue;
       if (!slideElements.title) slideElements.title = item
       else if (!slideElements.subtitle) slideElements.subtitle = item
       else slideElements.label = item
-    }else if (item.type == "paragraph") {
+    } else if (item.type == "paragraph") {
       if (previousType == item.type || paragraph.length == 0) {
         paragraph.push(item)
         previousType = item.type
@@ -621,7 +624,7 @@ const splitSlides = function(arrSubblocks) {
       if (!slideElements.title) slideElements.title = item
       else if (!slideElements.subtitle) slideElements.subtitle = item
       else slideElements.label = item
-    }else {
+    } else {
       if (previousType == item.type || objGraphic.childrens.length == 0) {
         objGraphic.type = item.type;
         if (item.type == "child_page") item.subblocks = splitSlides(item.subblocks)
@@ -641,42 +644,44 @@ const splitSlides = function(arrSubblocks) {
       if (paragraph.length < 3 && paragraph.length != 0 && !slideElements.title) {
         if (paragraph[0]) slideElements.title = paragraph[0];
         if (paragraph[1]) slideElements.subtitle = paragraph[1];
-      }else if (paragraph.length == 1 && !slideElements.subtitle) slideElements.subtitle = paragraph[0]
-      else if (paragraph.length > 0) slideElements.extraData = {type: "paragraph", childrens: paragraph}
-    }else if (paragraph.length > 0) {
+      } else if (paragraph.length == 1 && !slideElements.subtitle) slideElements.subtitle = paragraph[0]
+      else if (paragraph.length > 0) slideElements.extraData = { type: "paragraph", childrens: paragraph }
+    } else if (paragraph.length > 0) {
       if (paragraph.length == 1 && !slideElements.subtitle) slideElements.subtitle = paragraph[0];
-      slideElements.graphic = {type: "list", childrens: paragraph}
+      slideElements.graphic = { type: "list", childrens: paragraph }
     }
     if (Object.keys(slideElements).length > 0) arrSlides.push(slideElements);
+    if (subSlides) arrSlides = [...arrSlides, ...subSlides];
     keys = [];
     slideElements = {};
     previousType = "";
-    objGraphic = {type: "", childrens:[]};
+    objGraphic = { type: "", childrens: [] };
     paragraph = [];
+    subSlides = null;
   }
 
   return arrSlides
 }
 
-const parseList = function(graphicType, arrChildrens, slideObj) {
+const parseList = function (graphicType, arrChildrens, slideObj) {
   let subType = graphicType == "to_do" || graphicType == "bulleted_list_item" ? "bulleted" : graphicType == "image" ? "image" : "numbered"
   subType = graphicType == "list" ? "none" : subType;
-  let data = { 
-    "outlinetype": graphicType == "image" ? "image" : "none", 
+  let data = {
+    "outlinetype": graphicType == "image" ? "image" : "none",
     subtype: subType
   }
   data.matrix = [];
   arrChildrens.forEach(element => {
     let textData = parseText(element[element.type])
     let subMatrix = [textData]
-    if (textData.value.trim() != "") data.matrix.push({ matrix:  subMatrix})
+    if (textData.value.trim() != "") data.matrix.push({ matrix: subMatrix })
     if (element.subblocks) addSubList(subMatrix, element.subblocks)
   });
   if (graphicType == "to_do") {
-    data.properties = {graphicname: "ver-ckd-tx-sty-b"}
+    data.properties = { graphicname: "ver-ckd-tx-sty-b" }
   }
   slideObj.elements = [{
-    data: data, 
+    data: data,
     "outlinetype": "diagram",
     "type": "list",
   }]
@@ -698,7 +703,7 @@ exports.getDatabase = async function (pid) {
     let arrSlides = [];
     let slides = [];
     let count = 0;
-    
+
     for (let index = 0; index < data.subblocks.length; index++) {
       const slide = data.subblocks[index];
       if (slides.length == 0 || !slideSplitter.includes(slide.type)) {
@@ -784,7 +789,7 @@ exports.getDatabase = async function (pid) {
       if (Object.keys(parsedData).length > 0)
         arrFinalSLides.push(parsedData)
     }
-    return { slides: arrFinalSLides,generated:true, original: arrSlides, data: data };
+    return { slides: arrFinalSLides, generated: true, original: arrSlides, data: data, version: "v1" };
 
   } catch (error) {
     console.log(error)
@@ -792,7 +797,7 @@ exports.getDatabase = async function (pid) {
   }
 };
 
-exports.setAuthKey = function(key){
+exports.setAuthKey = function (key) {
   notion = new Client({ auth: key });
 }
 // paragraph && length == 1 && without 2 and 3  = 'subtitle';
