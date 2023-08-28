@@ -20,11 +20,15 @@ const getBlockChildren = async function (id, data) {
       await getBlockChildren(item.id, item)
     } else if (item.type == "child_database") {
       await getDatabase(item.id, item)
+    } else if (item.type == "synced_block") {
+      let syncId = item[item.type]?.["synced_from"]?.["block_id"] || null
+      // if (syncId) await getBlockChildren(syncId, item)
     }
     if (item.type != "unsupported") {
       arrBlocks.push(item);
     }
   };
+
   if (!data.subblocks) data.subblocks = []
   data.subblocks = arrBlocks;
 };
@@ -195,7 +199,7 @@ const parseNewSlide = function (slide) {
   let indent = 1;
   if (slide.graphic) {
     let graphics = slide.graphic.childrens;
-    if (graphics?.length > 1) {
+    if (isListType(slide.graphic.type)) {
       let subType = slide.graphic.type == "to_do" || slide.graphic.type == "bulleted_list_item" ? "bulleted" : slide.graphic.type == "image" ? "image" : "numbered"
       subType = slide.graphic.type == "list" ? "none" : subType;
       let data = {
@@ -264,6 +268,11 @@ const parseNewSlide = function (slide) {
         "outlinetype": "multicontenttable",
         "subtype": "multicontenttable",
       }]
+      let dbTitle = tableData["child_database"].title || "";
+      let dbTitleObj = { type: "text", value: dbTitle }
+      if (dbTitle != "" && !newSlide.title) newSlide.title = dbTitleObj
+      else if (dbTitle != "" && !newSlide.subtitle) newSlide.subtitle = dbTitleObj
+      else if (dbTitle != "" && !newSlide.label) newSlide.label = dbTitleObj
     } else if (slide.graphic.type == "quote") {
       let quote = graphics[0]
       newSlide.title = parseText(quote[quote.type])
@@ -354,12 +363,16 @@ const parseNewSlide = function (slide) {
     })
   }
 
+  function isListType(type) {
+    return type == "bulleted_list_item" || type == "numbered_list_item" || type == "toggle" || type == "list" || type == "to_do"
+  }
+
   if (slide.toggle) {
     let child = slide.toggle.childrens[0];
     newSlide.title = parseText(child[child.type])
   }
 
-  if (slide.extraData && !newSlide.elements) {
+  if (slide.extraData && !newSlide.elements && !newSlide.embed) {
     parseList(slide.extraData.type, slide.extraData.childrens, newSlide);
   } else if (slide.extraData) {
     let textData = slide.extraData.childrens.map(obj => {
@@ -393,7 +406,7 @@ const parseObjectText = function (typeObj) {
     } else if (typeObj && typeObj.name) {
       plainText = typeObj.name || " ";
     } else if (typeObj.type?.toLowerCase() == "text") {
-      plainText = textObj.plain_text || "";
+      plainText = typeObj.plain_text || "";
     }
   } catch (error) {
     console.log(typeObj)
@@ -587,9 +600,7 @@ const splitSlides = function (arrSubblocks) {
 
   for (let l = 0; l < arrSubblocks.length; l++) {
     let item = arrSubblocks[l];
-    if (item.subblocks) {
-      // subSlides = splitSlides(item.subblocks);
-    }
+    
     keys = Object.keys(slideElements);
 
     if (item.type == "divider") continue;
@@ -597,12 +608,18 @@ const splitSlides = function (arrSubblocks) {
     if (slideElements.title?.type == item.type) createNewSlide()
     if (keys.includes(HeaderKey[item.type])) createNewSlide()
     else if ((objGraphic.childrens.length > 0) && previousType != item.type) createNewSlide()
+    else if (objGraphic.childrens.length > 0 && item.type == "child_database") createNewSlide()
 
     if (item.type == "heading_1" && !keys.includes("title")) {
       let text = item[item.type].text?.[0]?.plain_text || ""
       if (text == "") continue;
       slideElements.title = item;
     } else if (item.type == "heading_2" && !keys.includes("subtitle")) {
+      if (item.subblocks) {
+        objGraphic.type = "list"
+        objGraphic.childrens.push(item);
+        continue;
+      }
       let text = item[item.type].text?.[0]?.plain_text || ""
       if (text == "") continue;
       if (!slideElements.title) slideElements.title = item
@@ -631,6 +648,11 @@ const splitSlides = function (arrSubblocks) {
         objGraphic.childrens.push(item)
       }
       previousType = item.type
+    }
+
+    if (item.type == "callout" && item.subblocks?.length > 0) {
+      let extraSlides = splitSlides(item.subblocks);
+      subSlides = subSlides ? subSlides.push(extraSlides) : extraSlides;
     }
   }
 
